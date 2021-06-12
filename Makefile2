@@ -1,0 +1,19 @@
+#Auto compile all .c => .o => executable files
+
+CC = gcc
+
+sources = $(wildcard *.c)
+#objects = $(sources:.c=)
+objects = liftSensor liftBody
+
+all: $(objects)
+
+%: %.o
+	${CC} %.o -o $@ $^
+
+%.o: %.c
+	$(CC) -c $<
+
+.PHONY: clean
+clean:
+	rm -f *.o
