@@ -172,8 +172,8 @@ int main() {
 
 // set timeout
 	struct timeval tv;
-	tv.tv_sec = 3;
-	tv.tv_usec = 0;
+	tv.tv_sec = 0;
+	tv.tv_usec = pow(10, 5);
 
 	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
 		perror("Error");
