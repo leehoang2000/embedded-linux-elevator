@@ -68,7 +68,7 @@ int main()
 void terminateHandler()
 {
     isKeyboardInterrupted = 1;
-    //interupted, delete queues
+    //interrupted, delete queues
     deleteMessageQueue(msgQueueCtrlToMng);
     printf("Queue %d deleted\n", msgQueueCtrlToMng.messageQueueID);
 
@@ -133,6 +133,7 @@ void sendWithMessageQueueObject(int floorNumber)
     //printf("liftMng init message queue id %d\n", msgQueue.messageQueueID); //debug
     Request request= createRequest(floorNumber);
     Message *message = createRequestMessage(request);
+    printf("pop: %d\n", message->value.request.floorNumber);
     sendMessageToQueue(msgQueue, message);
 }
 

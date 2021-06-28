@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/fcntl.h>
+#include <string.h>
 
 #include "liftCtrl.h"
 #include "lib/messageConfig.h"
@@ -59,9 +60,9 @@ void msgQueuesListeningLoop()
         else
         {
             //listening for lift sensors
-            if(getSensorFromMsgQueue(msgQueueSensorToCtrl, &sensorReceived) == 1){
+            if (getSensorFromMsgQueue(msgQueueSensorToCtrl, &sensorReceived) == 1) {
                 //check if sensor is ON FROM OFF of floor 1/requested floor
-                if(processSensorSignal(sensorReceived, requestReceived) == 1){ 
+                if (processSensorSignal(sensorReceived, requestReceived) == 1) {
                     //sendNextCommandInQueue(&commandQueue, &currentCommand);
                     currentCommandPtr = deQueue(&commandQueue);
                     sendCommandToBody(*currentCommandPtr);
@@ -71,19 +72,22 @@ void msgQueuesListeningLoop()
             //listening for manager's requests
             // if(getRequestObjectFromMsgQueue(msgQueueMngToCtrl, &requestReceived) == 1 )
             //     processRequestFromManager(currentCommandPtr, &commandQueue);
-            if(getRequestStringFromMsgQueue(msgQueueMngToCtrl, &requestReceived) == 1 )
+            if (getRequestStringFromMsgQueue(msgQueueMngToCtrl, &requestReceived) == 1 ) {
+                printf("x");
                 processRequestFromManager(currentCommandPtr, &commandQueue);
+            }
 
             //listening for completedStandbyRequest
-            if( getCompletedCommandFromMsgQueue(msgQueueBodyToCtrl) == 1){
-                if(!isQueueEmpty(commandQueue)){
+            if ( getCompletedCommandFromMsgQueue(msgQueueBodyToCtrl) == 1) {
+                if (!isQueueEmpty(commandQueue)) {
                     currentCommandPtr = deQueue(&commandQueue);
                     sendCommandToBody(*currentCommandPtr);
-                } else{
+                } else {
                     //TODO: arrived to 1st floor, send msg ARRIVE2 to liftMng to notify
                     printf("Completed request to floor %d\n", requestReceived.floorNumber);
-                    MessageQueue queue = getMessageQueue(KEY_FILE_PATH_CTRL_TO_MNG, CTRL_TO_MNG);
-                    sendStringThroughMessageQueue(queue, "ARRIVE2");
+                    // MessageQueue queue = getMessageQueue(KEY_FILE_PATH_CTRL_TO_MNG, CTRL_TO_MNG);
+                    // sendStringThroughMessageQueue(queue, "ARRIVE2");
+                    printf("l,1,2,3,eeeee");
                 }
             };
         }
@@ -91,7 +95,7 @@ void msgQueuesListeningLoop()
 }
 
 /** Get CompletedCommand from queue. Return 1 if completed standby command or 0  otherwise*/
-int getCompletedCommandFromMsgQueue(MessageQueue messageQueue){
+int getCompletedCommandFromMsgQueue(MessageQueue messageQueue) {
     Message messageReceived;
     if (receiveMessageFromQueue(messageQueue, &messageReceived) == -1) //nothing in queue
     {
@@ -102,7 +106,7 @@ int getCompletedCommandFromMsgQueue(MessageQueue messageQueue){
         int completedCommand = getIntFromMessage(messageReceived);
         //printf("Got a completed command from body: %d\n", completedCommand);fflush(stdout); //DEBUG
 
-        if(completedCommand == COMPLETED_STANDBY_COMMAND_MSG){
+        if (completedCommand == COMPLETED_STANDBY_COMMAND_MSG) {
             return 1;
         }
         return 0;
@@ -128,18 +132,18 @@ int getRequestObjectFromMsgQueue(MessageQueue messageQueue, Request* requestRece
 */
 
 /** Get request string from queue. Return 1 if sucess or 0 if no request received */
-int getRequestStringFromMsgQueue(MessageQueue messageQueue, Request* requestReceived){
+int getRequestStringFromMsgQueue(MessageQueue messageQueue, Request* requestReceived) {
     char stringReceived[MSGSIZE];
-    if(receiveStringFromQueue(messageQueue, stringReceived) == -1){
+    Message messageReceived;
+
+    if (receiveMessageFromQueue(messageQueue, &messageReceived) == -1) {
         return 0;
-    } else{ //got a string
-        int len = strlen(stringReceived);
-        //printf("String %s has length %d\n", stringReceived, len);
-        //atoi string, assign new request
-        int requestFloorNumber = atoi(stringReceived);
+    } else { //got a message
+        int requestFloorNumber = messageReceived.value.request.floorNumber;
         *requestReceived = createRequest(requestFloorNumber);
         printf("Got a Request to floor %d\n", requestFloorNumber);
         fflush(stdout); //DEBUG
+        *requestReceived = messageReceived.value.request;
         return 1;
     }
 }
@@ -156,22 +160,22 @@ int getSensorFromMsgQueue(MessageQueue messageQueue, Sensor *sensorReceived)
     else //message got
     {
         *sensorReceived = getSensorFromMessage(messageReceived);
-        //printf("Got a sensor signal on floor %d\n", sensorReceived->floorNumber);   fflush(stdout); //DEBUG        
+        //printf("Got a sensor signal on floor %d\n", sensorReceived->floorNumber);   fflush(stdout); //DEBUG
         return 1;
     }
 }
 
 /** Process request upon receiving*/
-void processRequestFromManager(Command *currentCommand, CommandQueue *commandQueue){
+void processRequestFromManager(Command *currentCommand, CommandQueue *commandQueue) {
     //if command queue is not empty, then does not process the request
-    if(!isQueueEmpty(*commandQueue)){
+    if (!isQueueEmpty(*commandQueue)) {
         printf("CommandQueue non empty.\n");
         return;
     }
 
     //command queue empty:
     printf("CommandQueue empty. Decoding new commands\n");
-    
+
     //Decode request into {UP,STANDBY,DOWN,STANDBY}. Add to queue.
     Command* upCommand = createUpCommand();
     Command* standByCommand1 = createStandByCommand();
@@ -196,23 +200,23 @@ int processSensorSignal(Sensor sensor, Request request)
     if (sensor.floorNumber == RISING_SENSOR_FLOOR)
     {
         if (sensor.state == SENSOR_ON)
-        { //ON FROM OFF
+        {   //ON FROM OFF
             sendStopCommandToBody();
         }
         return 0;
     }
     else
-    {             
-        //printf("Sensor processing. Floor requested: %d\n", request.floorNumber);   
+    {
+        //printf("Sensor processing. Floor requested: %d\n", request.floorNumber);
         //if lift moves to floor 1 or requested floor
         if (sensor.floorNumber == request.floorNumber || sensor.floorNumber == 1)
         {
             //TODO: arrived to requested floor, send MSG ARRIVE1 to liftMng
-            if(sensor.floorNumber == request.floorNumber && sensor.state == SENSOR_ON){
+            if (sensor.floorNumber == request.floorNumber && sensor.state == SENSOR_ON) {
                 MessageQueue queue = getMessageQueue(KEY_FILE_PATH_CTRL_TO_MNG, CTRL_TO_MNG);
                 sendStringThroughMessageQueue(queue, "ARRIVE1");
             }
-            
+
             //floor 1-5 signal: Only cares about ON FROM OFF signal
             if (sensor.state == SENSOR_ON)
             {
@@ -231,7 +235,7 @@ int sendCommandToBodyByType(int commandType)
 }
 
 int sendCommandToBody(Command command)
-{   
+{
     printf("Send command to body: %s\n", toString(&command)); //debug
     MessageQueue msgQueue = getMessageQueue(KEY_FILE_PATH_CTRL_TO_BODY, CTRL_TO_BODY);
     Message *message = createCommandMessage(command);
