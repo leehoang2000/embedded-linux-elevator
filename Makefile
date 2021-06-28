@@ -22,9 +22,9 @@ liftCtrl.o: liftCtrl.c
 	$(CC) -c $<
 ############
 liftMng: liftMng.o messageQueue.o request.o
-	${CC} $^ -o $@ 
+	${CC} $^ -o $@ -pthread 
 liftMng.o: liftMng.c
-	$(CC) -lpthread -c $<
+	$(CC) -pthread -c $<
 ################## LIBRARIES
 sensor.o: lib/sensor.c 
 	$(CC) -c $<
