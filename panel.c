@@ -15,7 +15,6 @@ int MNG_PORT = 8080;
 int MAXLINE = 5;
 time_t t;
 
-
 int readFloor(char*msg) {
 	int floor = -1;
 	sscanf( msg, "%3d", &floor);
@@ -29,7 +28,6 @@ int getRandomNumber() {
 int isValidFloor(int floor) {
 	return floor >= 0 && floor <= 5;
 }
-
 
 void signal_handle(int sign) {
 	if (sockfd) {

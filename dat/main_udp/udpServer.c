@@ -184,8 +184,6 @@ int processRequest(eRequest *req)
 }
 
 
-
-
 void signio_handler(int signo)
 {
   char buff[1024];

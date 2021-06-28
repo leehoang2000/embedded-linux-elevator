@@ -142,7 +142,6 @@ int getRequestStringFromMsgQueue(MessageQueue messageQueue, Request* requestRece
         fflush(stdout); //DEBUG
         return 1;
     }
-
 }
 
 /** Get sensor from queue. Return 1 if sucess or 0 if no sensor received*/

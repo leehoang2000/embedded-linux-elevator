@@ -34,6 +34,7 @@ void genMsg(int floor, char *msg)
   strcpy(msg, buf);
   free(buf);
 }
+
 int checkFloor(int floor){
   if(floor>this_floor && floor<6){
     return 1;
