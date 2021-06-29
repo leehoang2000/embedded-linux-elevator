@@ -26,7 +26,7 @@ int getRandomNumber() {
 }
 
 int isValidFloor(int floor) {
-	return floor >= 0 && floor <= 5;
+	return floor >= 2 && floor <= 5;
 }
 
 void signal_handle(int sign) {
