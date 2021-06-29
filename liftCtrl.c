@@ -10,6 +10,7 @@
 #include "liftBody.h"
 
 int isKeyboardInterrupted = 0;
+int requestCounter = 0;
 
 int main()
 {
@@ -39,7 +40,7 @@ void msgQueuesListeningLoop()
     Request requestReceived;
 
     Command *currentCommandPtr; //store current command
-    CommandQueue commandQueue; //store queue of commands
+    CommandQueue commandQueue;  //store queue of commands
     makeQueueEmpty(&commandQueue);
 
     //listening loop
@@ -60,9 +61,11 @@ void msgQueuesListeningLoop()
         else
         {
             //listening for lift sensors
-            if (getSensorFromMsgQueue(msgQueueSensorToCtrl, &sensorReceived) == 1) {
+            if (getSensorFromMsgQueue(msgQueueSensorToCtrl, &sensorReceived) == 1)
+            {
                 //check if sensor is ON FROM OFF of floor 1/requested floor
-                if (processSensorSignal(sensorReceived, requestReceived) == 1) {
+                if (processSensorSignal(sensorReceived, requestReceived) == 1)
+                {
                     //sendNextCommandInQueue(&commandQueue, &currentCommand);
                     currentCommandPtr = deQueue(&commandQueue);
                     sendCommandToBody(*currentCommandPtr);
@@ -72,22 +75,39 @@ void msgQueuesListeningLoop()
             //listening for manager's requests
             // if(getRequestObjectFromMsgQueue(msgQueueMngToCtrl, &requestReceived) == 1 )
             //     processRequestFromManager(currentCommandPtr, &commandQueue);
-            if (getRequestStringFromMsgQueue(msgQueueMngToCtrl, &requestReceived) == 1 ) {
-                printf("x");
-                processRequestFromManager(currentCommandPtr, &commandQueue);
+
+            //DEBUG
+            if(requestCounter < 0){
+                printf("Invalid requestCounter value: %d", requestCounter);
+                exit(1);
             }
 
+            if (requestCounter == 0)
+            {
+                if (getRequestStringFromMsgQueue(msgQueueMngToCtrl, &requestReceived) == 1)
+                {
+                    // printf("x");
+                    requestCounter++;
+                    processRequestFromManager(currentCommandPtr, &commandQueue);
+                }
+            } 
+
             //listening for completedStandbyRequest
-            if ( getCompletedCommandFromMsgQueue(msgQueueBodyToCtrl) == 1) {
-                if (!isQueueEmpty(commandQueue)) {
+            if (getCompletedCommandFromMsgQueue(msgQueueBodyToCtrl) == 1)
+            {
+                if (!isQueueEmpty(commandQueue))
+                {
                     currentCommandPtr = deQueue(&commandQueue);
                     sendCommandToBody(*currentCommandPtr);
-                } else {
+                }
+                else
+                {
                     //TODO: arrived to 1st floor, send msg ARRIVE2 to liftMng to notify
                     printf("Completed request to floor %d\n", requestReceived.floorNumber);
                     // MessageQueue queue = getMessageQueue(KEY_FILE_PATH_CTRL_TO_MNG, CTRL_TO_MNG);
                     // sendStringThroughMessageQueue(queue, "ARRIVE2");
-                    printf("l,1,2,3,eeeee");
+                    // printf("l,1,2,3,eeeee");
+                    requestCounter--;
                 }
             };
         }
@@ -95,7 +115,8 @@ void msgQueuesListeningLoop()
 }
 
 /** Get CompletedCommand from queue. Return 1 if completed standby command or 0  otherwise*/
-int getCompletedCommandFromMsgQueue(MessageQueue messageQueue) {
+int getCompletedCommandFromMsgQueue(MessageQueue messageQueue)
+{
     Message messageReceived;
     if (receiveMessageFromQueue(messageQueue, &messageReceived) == -1) //nothing in queue
     {
@@ -106,7 +127,8 @@ int getCompletedCommandFromMsgQueue(MessageQueue messageQueue) {
         int completedCommand = getIntFromMessage(messageReceived);
         //printf("Got a completed command from body: %d\n", completedCommand);fflush(stdout); //DEBUG
 
-        if (completedCommand == COMPLETED_STANDBY_COMMAND_MSG) {
+        if (completedCommand == COMPLETED_STANDBY_COMMAND_MSG)
+        {
             return 1;
         }
         return 0;
@@ -132,13 +154,17 @@ int getRequestObjectFromMsgQueue(MessageQueue messageQueue, Request* requestRece
 */
 
 /** Get request string from queue. Return 1 if sucess or 0 if no request received */
-int getRequestStringFromMsgQueue(MessageQueue messageQueue, Request* requestReceived) {
+int getRequestStringFromMsgQueue(MessageQueue messageQueue, Request *requestReceived)
+{
     char stringReceived[MSGSIZE];
     Message messageReceived;
 
-    if (receiveMessageFromQueue(messageQueue, &messageReceived) == -1) {
+    if (receiveMessageFromQueue(messageQueue, &messageReceived) == -1)
+    {
         return 0;
-    } else { //got a message
+    }
+    else
+    { //got a message
         int requestFloorNumber = messageReceived.value.request.floorNumber;
         *requestReceived = createRequest(requestFloorNumber);
         printf("Got a Request to floor %d\n", requestFloorNumber);
@@ -166,10 +192,12 @@ int getSensorFromMsgQueue(MessageQueue messageQueue, Sensor *sensorReceived)
 }
 
 /** Process request upon receiving*/
-void processRequestFromManager(Command *currentCommand, CommandQueue *commandQueue) {
+void processRequestFromManager(Command *currentCommand, CommandQueue *commandQueue)
+{
     //if command queue is not empty, then does not process the request
-    if (!isQueueEmpty(*commandQueue)) {
-        printf("CommandQueue non empty.\n");
+    if (!isQueueEmpty(*commandQueue))
+    {
+        // printf("CommandQueue non empty.\n");
         return;
     }
 
@@ -177,10 +205,10 @@ void processRequestFromManager(Command *currentCommand, CommandQueue *commandQue
     printf("CommandQueue empty. Decoding new commands\n");
 
     //Decode request into {UP,STANDBY,DOWN,STANDBY}. Add to queue.
-    Command* upCommand = createUpCommand();
-    Command* standByCommand1 = createStandByCommand();
-    Command* downCommand = createDownCommand();
-    Command* standByCommand2 = createStandByCommand();
+    Command *upCommand = createUpCommand();
+    Command *standByCommand1 = createStandByCommand();
+    Command *downCommand = createDownCommand();
+    Command *standByCommand2 = createStandByCommand();
 
     enQueue(upCommand, commandQueue);
     enQueue(standByCommand1, commandQueue);
@@ -190,8 +218,10 @@ void processRequestFromManager(Command *currentCommand, CommandQueue *commandQue
     //send first command
     currentCommand = deQueue(commandQueue);
     sendCommandToBody(*currentCommand);
-}
 
+    //Decrease the request counter
+    
+}
 
 /** Process sensor signal upon receiving*/
 int processSensorSignal(Sensor sensor, Request request)
@@ -200,7 +230,7 @@ int processSensorSignal(Sensor sensor, Request request)
     if (sensor.floorNumber == RISING_SENSOR_FLOOR)
     {
         if (sensor.state == SENSOR_ON)
-        {   //ON FROM OFF
+        { //ON FROM OFF
             sendStopCommandToBody();
         }
         return 0;
@@ -212,7 +242,8 @@ int processSensorSignal(Sensor sensor, Request request)
         if (sensor.floorNumber == request.floorNumber || sensor.floorNumber == 1)
         {
             //TODO: arrived to requested floor, send MSG ARRIVE1 to liftMng
-            if (sensor.floorNumber == request.floorNumber && sensor.state == SENSOR_ON) {
+            if (sensor.floorNumber == request.floorNumber && sensor.state == SENSOR_ON)
+            {
                 MessageQueue queue = getMessageQueue(KEY_FILE_PATH_CTRL_TO_MNG, CTRL_TO_MNG);
                 sendStringThroughMessageQueue(queue, "ARRIVE1");
             }
@@ -230,7 +261,7 @@ int processSensorSignal(Sensor sensor, Request request)
 /** Send command to body by command type. Return 0 or -1*/
 int sendCommandToBodyByType(int commandType)
 {
-    Command* command = createCommand(commandType);
+    Command *command = createCommand(commandType);
     return sendCommandToBody(*command);
 }
 

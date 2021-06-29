@@ -6,8 +6,10 @@
 #define KEY_FILE_PATH_BODY_TO_SENSOR "./liftSensor"
 #define KEY_FILE_PATH_SENSOR_TO_CTRL "./liftCtrl"
 #define KEY_FILE_PATH_CTRL_TO_BODY "./liftBody"
-#define KEY_FILE_PATH_MNG_TO_CTRL "keyfilepath"
-#define KEY_FILE_PATH_CTRL_TO_MNG "keyfilepath"
+// #define KEY_FILE_PATH_MNG_TO_CTRL "keyfilepath"
+// #define KEY_FILE_PATH_CTRL_TO_MNG "keyfilepath"
+#define KEY_FILE_PATH_MNG_TO_CTRL "./liftCtrl"
+#define KEY_FILE_PATH_CTRL_TO_MNG "./liftMng"
 
 #define BODY_TO_SENSOR 1
 #define SENSOR_TO_CTRL 2
