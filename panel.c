@@ -43,11 +43,9 @@ int main() {
 	signal(SIGINT, signal_handle);
 	// create udp connection
 
-
 	char buffer[MAXLINE];
 	struct sockaddr_in servaddr;
 	memset(&servaddr, 0, sizeof(servaddr));
-
 
 	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		perror("socket creation failed");
@@ -59,7 +57,6 @@ int main() {
 	servaddr.sin_port = htons(MNG_PORT);
 
 	int len = sizeof(servaddr);
-
 
 	int target_floor = -1;
 	while (1) {

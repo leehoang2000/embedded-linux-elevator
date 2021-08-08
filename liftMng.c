@@ -29,7 +29,7 @@ MessageQueue msgQueueCtrlToMng;
 int main()
 {
     //sendWithMessageQueueObject();
-    MessageQueue msgQueue = getMessageQueue(KEY_FILE_PATH_MNG_TO_CTRL, MNG_TO_CTRL);
+    // MessageQueue msgQueue = getMessageQueue(KEY_FILE_PATH_MNG_TO_CTRL, MNG_TO_CTRL);
     // sendStringThroughMessageQueue(msgQueue, "3");
 
     //delete msgQueue on keyboard interuption
@@ -97,11 +97,6 @@ void listeningLoop()
 
     while (1)
     {
-        // if (receiveStringFromQueue(msgQueueCtrlToMng, stringReceived) == 0)
-        // {
-        //     printf("Mng receives message from Ctrl:%s\n", stringReceived);
-        // }
-
         int n;
         char buffer[MAXLINE];
         int received_floor = -1;

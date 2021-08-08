@@ -71,17 +71,7 @@ void msgQueuesListeningLoop()
                     sendCommandToBody(*currentCommandPtr);
                 };
             }
-
-            //listening for manager's requests
-            // if(getRequestObjectFromMsgQueue(msgQueueMngToCtrl, &requestReceived) == 1 )
-            //     processRequestFromManager(currentCommandPtr, &commandQueue);
-
-            //DEBUG
-            if(requestCounter < 0){
-                printf("Invalid requestCounter value: %d", requestCounter);
-                exit(1);
-            }
-
+            
             if (requestCounter == 0)
             {
                 if (getRequestStringFromMsgQueue(msgQueueMngToCtrl, &requestReceived) == 1)
@@ -218,8 +208,6 @@ void processRequestFromManager(Command *currentCommand, CommandQueue *commandQue
     //send first command
     currentCommand = deQueue(commandQueue);
     sendCommandToBody(*currentCommand);
-
-    //Decrease the request counter
     
 }
 
@@ -242,11 +230,11 @@ int processSensorSignal(Sensor sensor, Request request)
         if (sensor.floorNumber == request.floorNumber || sensor.floorNumber == 1)
         {
             //TODO: arrived to requested floor, send MSG ARRIVE1 to liftMng
-            if (sensor.floorNumber == request.floorNumber && sensor.state == SENSOR_ON)
-            {
-                MessageQueue queue = getMessageQueue(KEY_FILE_PATH_CTRL_TO_MNG, CTRL_TO_MNG);
-                sendStringThroughMessageQueue(queue, "ARRIVE1");
-            }
+            // if (sensor.floorNumber == request.floorNumber && sensor.state == SENSOR_ON)
+            // {
+            //     MessageQueue queue = getMessageQueue(KEY_FILE_PATH_CTRL_TO_MNG, CTRL_TO_MNG);
+            //     sendStringThroughMessageQueue(queue, "ARRIVE1");
+            // }
 
             //floor 1-5 signal: Only cares about ON FROM OFF signal
             if (sensor.state == SENSOR_ON)
