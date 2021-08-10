@@ -128,7 +128,7 @@ void sendWithMessageQueueObject(int floorNumber)
     //printf("liftMng init message queue id %d\n", msgQueue.messageQueueID); //debug
     Request request= createRequest(floorNumber);
     Message *message = createRequestMessage(request);
-    printf("pop: %d\n", message->value.request.floorNumber);
+    //printf("pop: %d\n", message->value.request.floorNumber);
     sendMessageToQueue(msgQueue, message);
 }
 

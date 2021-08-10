@@ -56,7 +56,8 @@ void mainLoop(double *height, double *velocity){
             time = getCurrentTime() - time; 
             timeSinceLastFrame += time;
         }
-        //the following statements are executed per frame
+
+        //the following statements are executed per frame 
 
         //print height. Increase iteration. 
         printHeightPerNFrame(&iterations, (*height), (*velocity));
@@ -65,7 +66,9 @@ void mainLoop(double *height, double *velocity){
         (*height) += ((*velocity) * timeSinceLastFrame);
 
         //process STANDBY command
-        if(liftState == STATE_STANDING_BY && hasAlarmed == 0){ //just from waiting to stop to standing by
+        if(liftState == STATE_STANDING_BY && hasAlarmed == 0) 
+        { 
+            //just from waiting to stop to standing by
             stop(velocity);
             hasAlarmed = 1;
             printf("Standing by for 3 seconds\n");
@@ -98,9 +101,7 @@ void mainLoop(double *height, double *velocity){
                 processControlCommand(controlCommand, velocity);
             }
         }
-
     }   
-
 }
 
 /** Process signal got from liftCtrl*/
@@ -182,7 +183,7 @@ void sigAlarmHandler(){
     hasAlarmed = 0;
 
     switch (liftState){
-    case STATE_WAITING_TO_STOP :
+    case STATE_WAITING_TO_STOP:
         //stop();
         liftState = STATE_STANDING_BY;
         break;

@@ -34,7 +34,6 @@ void operateSensors(double height, Sensor* sensorList, int length){
     {
         operateSensor(height, &sensorList[i]);
     }
-    
 }
 
 /** 1. Check height against a sensor
